@@ -4,7 +4,6 @@ of the file resources (defined as classes) are being added to the api variable.
 """
 from wgmeshapi import api, db
 from wgmeshapi.models import Netaddr, Peer
-from wgmeshapi.wireguard import WireGuard as wg
 from flask_restful import Resource, reqparse
 import flask
 
@@ -219,7 +218,7 @@ Endpoint = {}\n\n"""
                 netaddr.description,
                 peer.name,
                 peer.pubkey,
-                peer.address.split('/')[0] + ':51820',
+                peer.address.split('/')[0] + '/32',
                 peer.endpoint
             )
 
