@@ -1,3 +1,7 @@
+"""
+Create Flask app instance with specific configurations. Make an API with Flask
+app as context. Create database context, and import the API resources.
+"""
 from flask import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy

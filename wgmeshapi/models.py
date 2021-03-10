@@ -1,7 +1,9 @@
+"""Model classes defining the database schema."""
 from wgmeshapi import db
 
 
 class Netaddr(db.Model):
+    """Model defining the network address object."""
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), unique=False, nullable=False)
     netaddr = db.Column(db.String(18), unique=True, nullable=False)
@@ -12,6 +14,7 @@ class Netaddr(db.Model):
 
 
 class Peer(db.Model):
+    """Model defining the peers, related network addresses, object."""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=False, nullable=False)
     netaddr_id = db.Column(db.Integer, db.ForeignKey('netaddr.id'), nullable=False)

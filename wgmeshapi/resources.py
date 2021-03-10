@@ -1,19 +1,31 @@
+"""
+Classes in this file implements the flask_restful.Resource class. Near the bottom
+of the file resources (defined as classes) are being added to the api variable.
+"""
 from wgmeshapi import api, db
 from wgmeshapi.models import Netaddr, Peer
 from wgmeshapi.wireguard import WireGuard as wg
 from flask_restful import Resource, reqparse
 
 NetaddrParser = reqparse.RequestParser()
-NetaddrParser.add_argument('description', required=True, type=str, help='Description to this network')
-NetaddrParser.add_argument('netaddr', required=True, type=str, help='Virtual network address to use')
+NetaddrParser.add_argument('description', required=True, type=str,
+                           help='Description to this network')
+NetaddrParser.add_argument('netaddr', required=True, type=str,
+                           help='Virtual network address to use')
 
 PeersParser = reqparse.RequestParser()
 PeersParser.add_argument('name', required=True, type=str, help='Name of the peer')
-PeersParser.add_argument('address', required=True, type=str, help='IP address in the overlay network')
-PeersParser.add_argument('endpoint', required=True, type=str, help='Endpoint in the \'normal\' network')
-PeersParser.add_argument('privkey', required=False, type=str, help='Private key of this peer, auto-generated if not set')
+PeersParser.add_argument('address', required=True, type=str,
+                         help='IP address in the overlay network')
+PeersParser.add_argument('endpoint', required=True, type=str,
+                         help='Endpoint in the \'normal\' network')
+PeersParser.add_argument('privkey', required=False, type=str,
+                         help='Private key of this peer, auto-generated if not set')
+
 
 class NetaddrListAPI(Resource):
+    """List and create network addresses from/to the database context."""
+
     def get(self):
         results = Netaddr.query.all()
         netaddrs = {}
@@ -31,18 +43,21 @@ class NetaddrListAPI(Resource):
             netaddr=args['netaddr']
         )
         db.session.add(netaddr)
+
         try:
             db.session.commit()
+            return {
+                'id': netaddr.id,
+                'description': netaddr.description,
+                'netaddr': netaddr.netaddr
+            }, 201
         except Exception:
             return {'message': 'Resource not created.'}
-        return {
-            'id': netaddr.id,
-            'description': netaddr.description,
-            'netaddr': netaddr.netaddr
-        }, 201
 
 
 class NetaddrAPI(Resource):
+    """Read, update and delete network addresses from database context."""
+
     def get(self, id):
         result = Netaddr.query.get_or_404(id)
         return {
@@ -54,9 +69,11 @@ class NetaddrAPI(Resource):
     def put(self, id):
         args = NetaddrParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
+
         netaddr.description = args['description']
         netaddr.netaddr = args['netaddr']
         db.session.add(netaddr)
+
         try:
             db.session.commit()
             return {
@@ -78,6 +95,8 @@ class NetaddrAPI(Resource):
 
 
 class PeerListAPI(Resource):
+    """List and create peers of/to specific network address."""
+
     def get(self, id):
         results = Netaddr.query.get_or_404(id).peers
         peers = {}
@@ -106,8 +125,8 @@ class PeerListAPI(Resource):
             endpoint=args['endpoint'],
             privkey=privkey
         )
-
         db.session.add(peer)
+
         try:
             db.session.commit()
             peer = Peer.query.get(peer.id)
@@ -121,7 +140,10 @@ class PeerListAPI(Resource):
         except Exception:
             return {'message': 'Resource not created.'}
 
+
 class PeerAPI(Resource):
+    """Read, update and delete peers from specific network address."""
+
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -137,6 +159,7 @@ class PeerAPI(Resource):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+
         peer.name = args['name']
         peer.address = args['address']
         peer.endpoint = args['endpoint']
@@ -164,6 +187,7 @@ class PeerAPI(Resource):
             return None, 204
         except Exception:
             return {'message': 'Resource not deleted.'}
+
 
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
