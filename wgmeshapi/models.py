@@ -5,7 +5,7 @@ class Netaddr(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.String(100), unique=False, nullable=False)
     netaddr = db.Column(db.String(18), unique=True, nullable=False)
-    peers = db.relationship('Peer', backref='members', lazy=True)
+    peers = db.relationship('Peer', backref='members', lazy='dynamic')
 
     def __repr__(self):
         return f"Netaddr('{self.id}', '{self.netaddr}')"
