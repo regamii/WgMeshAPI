@@ -20,7 +20,7 @@ class Peer(db.Model):
     netaddr_id = db.Column(db.Integer, db.ForeignKey('netaddr.id'), nullable=False)
     address = db.Column(db.String(18), unique=True, nullable=False)
     endpoint = db.Column(db.String(21), unique=True, nullable=False)
-    privkey = db.Column(db.String(44), unique=True, nullable=False)
+    pubkey = db.Column(db.String(44), unique=True, nullable=False)
 
     def __repr__(self):
         return f"Peer('{self.id}', '{self.name}', '{self.netaddr_id}', '{self.address}', '{self.endpoint}', '{self.privkey}')"
