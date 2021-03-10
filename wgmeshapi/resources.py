@@ -121,7 +121,51 @@ class PeerListAPI(Resource):
         except Exception:
             return {'message': 'Resource not created.'}
 
+class PeerAPI(Resource):
+    def get(self, netaddrId, peerId):
+        netaddr = Netaddr.query.get_or_404(netaddrId)
+        peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+        return {
+            'id': peer.id,
+            'name': peer.name,
+            'address': peer.address,
+            'endpoint': peer.endpoint,
+            'privkey': peer.privkey
+        }
+
+    def put(self, netaddrId, peerId):
+        args = PeersParser.parse_args()
+        netaddr = Netaddr.query.get_or_404(netaddrId)
+        peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+        peer.name = args['name']
+        peer.address = args['address']
+        peer.endpoint = args['endpoint']
+        peer.privkey = args['privkey']
+        db.session.add(peer)
+
+        try:
+            db.session.commit()
+            return {
+                'id': peer.id,
+                'name': peer.name,
+                'address': peer.address,
+                'endpoint': peer.endpoint,
+                'privkey': peer.privkey
+            }
+        except Exception:
+            return {'message': 'Resource not altered.'}
+
+    def delete(self, netaddrId, peerId):
+        netaddr = Netaddr.query.get_or_404(netaddrId)
+        peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+        db.session.delete(peer)
+        try:
+            db.session.commit()
+            return None, 204
+        except Exception:
+            return {'message': 'Resource not deleted.'}
 
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
+api.add_resource(PeerAPI, '/netaddr/<int:netaddrId>/peer/<int:peerId>')
