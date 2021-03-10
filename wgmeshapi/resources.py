@@ -6,6 +6,7 @@ from wgmeshapi import api, db
 from wgmeshapi.models import Netaddr, Peer
 from wgmeshapi.wireguard import WireGuard as wg
 from flask_restful import Resource, reqparse
+import flask
 
 NetaddrParser = reqparse.RequestParser()
 NetaddrParser.add_argument('description', required=True, type=str,
@@ -19,8 +20,8 @@ PeersParser.add_argument('address', required=True, type=str,
                          help='IP address in the overlay network')
 PeersParser.add_argument('endpoint', required=True, type=str,
                          help='Endpoint in the \'normal\' network')
-PeersParser.add_argument('privkey', required=False, type=str,
-                         help='Private key of this peer, auto-generated if not set')
+PeersParser.add_argument('pubkey', required=True, type=str,
+                         help='Public key of this peer.')
 
 
 class NetaddrListAPI(Resource):
@@ -105,7 +106,7 @@ class PeerListAPI(Resource):
                 'name': result.name,
                 'address': result.address,
                 'endpoint': result.endpoint,
-                'privkey': result.privkey
+                'pubkey': result.pubkey
             }
         return peers
 
@@ -113,17 +114,12 @@ class PeerListAPI(Resource):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
 
-        if args['privkey']:
-            privkey = args['privkey']
-        else:
-            privkey = wg.genkey()
-
         peer = Peer(
             name=args['name'],
             netaddr_id=netaddr.id,
             address=args['address'],
             endpoint=args['endpoint'],
-            privkey=privkey
+            pubkey=args['pubkey']
         )
         db.session.add(peer)
 
@@ -135,7 +131,7 @@ class PeerListAPI(Resource):
                 'name': peer.name,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
-                'privkey': peer.privkey
+                'pubkey': peer.pubkey
             }, 201
         except Exception:
             return {'message': 'Resource not created.'}
@@ -152,7 +148,7 @@ class PeerAPI(Resource):
             'name': peer.name,
             'address': peer.address,
             'endpoint': peer.endpoint,
-            'privkey': peer.privkey
+            'pubkey': peer.pubkey
         }
 
     def put(self, netaddrId, peerId):
@@ -163,7 +159,7 @@ class PeerAPI(Resource):
         peer.name = args['name']
         peer.address = args['address']
         peer.endpoint = args['endpoint']
-        peer.privkey = args['privkey']
+        peer.pubkey = args['pubkey']
         db.session.add(peer)
 
         try:
@@ -173,7 +169,7 @@ class PeerAPI(Resource):
                 'name': peer.name,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
-                'privkey': peer.privkey
+                'pubkey': peer.pubkey
             }
         except Exception:
             return {'message': 'Resource not altered.'}
@@ -189,7 +185,51 @@ class PeerAPI(Resource):
             return {'message': 'Resource not deleted.'}
 
 
+class Config(Resource):
+    """Generate WireGuard compatible configuration file."""
+    def __init__(self):
+        self.config = """[Interface]
+# Network: {}
+# Name: {}
+Address = {}
+ListenPort = {}
+PrivateKey = PLACEHOLDER\n\n"""
+        self.peer = """[Peer]
+# Network: {}
+# Name: {}
+PublicKey = {}
+AllowedIPs = {}
+Endpoint = {}\n\n"""
+
+    def get(self, netaddrId, peerId):
+        netaddr = Netaddr.query.get_or_404(netaddrId)
+        interface = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+        interface.listenPort = interface.endpoint.split(':')[1]
+        peers = Peer.query.filter(Peer.id != peerId).all()
+
+        self.config = self.config.format(
+            netaddr.description,
+            interface.name,
+            interface.address,
+            interface.listenPort
+        )
+
+        for peer in peers:
+            self.config += self.peer.format(
+                netaddr.description,
+                peer.name,
+                peer.pubkey,
+                peer.address.split('/')[0] + ':51820',
+                peer.endpoint
+            )
+
+        response = flask.make_response(self.config, 200)
+        response.headers['content-type'] = 'text/plain'
+        return response
+
+
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
 api.add_resource(PeerAPI, '/netaddr/<int:netaddrId>/peer/<int:peerId>')
+api.add_resource(Config, '/netaddr/<int:netaddrId>/peer/<int:peerId>/config')
