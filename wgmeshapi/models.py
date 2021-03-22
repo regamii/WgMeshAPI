@@ -1,5 +1,17 @@
 """Model classes defining the database schema."""
 from wgmeshapi import db
+from werkzeug.security import generate_password_hash, check_password_hash
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(32), unique=True)
+    password = db.Column(db.String(128))
+
+    def hash_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password, password)
 
 
 class Netaddr(db.Model):
