@@ -2,10 +2,11 @@
 Classes in this file implements the flask_restful.Resource class. Near the bottom
 of the file resources (defined as classes) are being added to the api variable.
 """
-from wgmeshapi import api, db
-from wgmeshapi.models import Netaddr, Peer
+from wgmeshapi import api, db, auth
+from wgmeshapi.models import User, Netaddr, Peer
 from flask_restful import Resource, reqparse
-import flask
+from flask import make_response, g
+import jwt
 
 NetaddrParser = reqparse.RequestParser()
 NetaddrParser.add_argument('description', required=True, type=str,
@@ -23,9 +24,27 @@ PeersParser.add_argument('pubkey', required=True, type=str,
                          help='Public key of this peer.')
 
 
+@auth.verify_password
+def verify(username_or_token, password):
+    try:
+        data = jwt.decode(
+            username_or_token,
+            app.config['SECRET_KEY'],
+            algorithms=['HS256']
+        )
+        user = User.query.get(data['id'])
+    except Exception:
+        user = User.query.filter_by(username=username_or_token).first()
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
+
+
 class NetaddrListAPI(Resource):
     """List and create network addresses from/to the database context."""
 
+    @auth.login_required
     def get(self):
         results = Netaddr.query.all()
         netaddrs = {}
@@ -36,6 +55,7 @@ class NetaddrListAPI(Resource):
             }
         return netaddrs
 
+    @auth.login_required
     def post(self):
         args = NetaddrParser.parse_args()
         netaddr = Netaddr(
@@ -58,6 +78,7 @@ class NetaddrListAPI(Resource):
 class NetaddrAPI(Resource):
     """Read, update and delete network addresses from database context."""
 
+    @auth.login_required
     def get(self, id):
         result = Netaddr.query.get_or_404(id)
         return {
@@ -66,6 +87,7 @@ class NetaddrAPI(Resource):
             'netaddr': result.netaddr
         }
 
+    @auth.login_required
     def put(self, id):
         args = NetaddrParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
@@ -84,6 +106,7 @@ class NetaddrAPI(Resource):
         except Exception:
             return {'message': 'Resource not altered.'}
 
+    @auth.login_required
     def delete(self, id):
         netaddr = Netaddr.query.get_or_404(id)
         db.session.delete(netaddr)
@@ -97,6 +120,7 @@ class NetaddrAPI(Resource):
 class PeerListAPI(Resource):
     """List and create peers of/to specific network address."""
 
+    @auth.login_required
     def get(self, id):
         results = Netaddr.query.get_or_404(id).peers
         peers = {}
@@ -109,6 +133,7 @@ class PeerListAPI(Resource):
             }
         return peers
 
+    @auth.login_required
     def post(arg, id):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
@@ -139,6 +164,7 @@ class PeerListAPI(Resource):
 class PeerAPI(Resource):
     """Read, update and delete peers from specific network address."""
 
+    @auth.login_required
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -150,6 +176,7 @@ class PeerAPI(Resource):
             'pubkey': peer.pubkey
         }
 
+    @auth.login_required
     def put(self, netaddrId, peerId):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(netaddrId)
@@ -173,6 +200,7 @@ class PeerAPI(Resource):
         except Exception:
             return {'message': 'Resource not altered.'}
 
+    @auth.login_required
     def delete(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -186,6 +214,7 @@ class PeerAPI(Resource):
 
 class Config(Resource):
     """Generate WireGuard compatible configuration file."""
+
     def __init__(self):
         self.config = """[Interface]
 # Network: {}
@@ -200,6 +229,7 @@ PublicKey = {}
 AllowedIPs = {}
 Endpoint = {}\n\n"""
 
+    @auth.login_required
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         interface = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -222,7 +252,7 @@ Endpoint = {}\n\n"""
                 peer.endpoint
             )
 
-        response = flask.make_response(self.config, 200)
+        response = make_response(self.config, 200)
         response.headers['content-type'] = 'text/plain'
         return response
 

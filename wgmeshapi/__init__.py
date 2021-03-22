@@ -10,6 +10,7 @@ from flask_httpauth import HTTPBasicAuth
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wgmeshapi.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'secret'
 api = Api(app)
 db = SQLAlchemy(app)
 auth = HTTPBasicAuth()

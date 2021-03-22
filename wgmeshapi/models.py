@@ -1,6 +1,8 @@
 """Model classes defining the database schema."""
-from wgmeshapi import db
+from wgmeshapi import app, db
 from werkzeug.security import generate_password_hash, check_password_hash
+import time
+import jwt
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -12,6 +14,11 @@ class User(db.Model):
 
     def verify_password(self, password):
         return check_password_hash(self.password, password)
+
+    def generate_auth_token(self, expires_in=3600):
+        return jwt.encode(
+            {'id': self.id, 'exp': time.time() + expires_in},
+            app.config['SECRET_KEY'], algorithm='HS256')
 
 
 class Netaddr(db.Model):
