@@ -96,6 +96,73 @@ class UserListAPI(Resource):
             return {'message': 'Resource not created.'}
 
 
+class UserAPI(Resource):
+    """Read, update and delete users from/to the database context."""
+
+    def __init__(self):
+        self.admin = User.query.first()
+
+    @auth.login_required
+    def get(self, id):
+        result = User.query.get_or_404(id)
+
+        if result is self.admin:
+            return {
+                'id': result.id,
+                'username': result.username,
+                'admin': True
+            }
+
+        return {
+            'id': result.id,
+            'username': result.username,
+            'admin': False
+        }
+
+    @auth.login_required
+    def put(self, id):
+        user = User.query.get_or_404(id)
+        if g.user is not self.admin and g.user is not user:
+            abort(403)
+
+        args = UserParser.parse_args()
+        user.username = args['username']
+        user.hash_password(args['password'])
+        db.session.add(user)
+
+        try:
+            db.session.commit()
+            if user is self.admin:
+                return {
+                    'id': user.id,
+                    'username': user.username,
+                    'admin': True
+                }
+
+            return {
+                'id': user.id,
+                'username': user.username,
+                'admin': False
+            }
+        except Exception:
+            return {'message': 'Resource not altered.'}
+
+    @auth.login_required
+    def delete(self, id):
+        user = User.query.get_or_404(id)
+        if g.user is not self.admin and g.user is not user:
+            abort(403)
+
+        db.session.delete(user)
+        try:
+            db.session.commit()
+            return None, 204
+        except Exception:
+            return {'message': 'Resource not deleted.'}
+
+
+
+
 class NetaddrListAPI(Resource):
     """List and create network addresses from/to the database context."""
 
@@ -131,7 +198,7 @@ class NetaddrListAPI(Resource):
 
 
 class NetaddrAPI(Resource):
-    """Read, update and delete network addresses from database context."""
+    """Read, update and delete network addresses from/to database context."""
 
     @auth.login_required
     def get(self, id):
@@ -217,7 +284,7 @@ class PeerListAPI(Resource):
 
 
 class PeerAPI(Resource):
-    """Read, update and delete peers from specific network address."""
+    """Read, update and delete peers from/to specific network address."""
 
     @auth.login_required
     def get(self, netaddrId, peerId):
@@ -313,6 +380,7 @@ Endpoint = {}\n\n"""
 
 
 api.add_resource(UserListAPI, '/user')
+api.add_resource(UserAPI, '/user/<int:id>')
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
