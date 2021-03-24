@@ -4,7 +4,7 @@ of the file resources (defined as classes) are being added to the api variable.
 """
 from wgmeshapi import api, db, auth
 from wgmeshapi.models import User, Netaddr, Peer
-from flask_restful import Resource, reqparse
+from flask_restful import Resource, reqparse, abort
 from flask import make_response, g
 import jwt
 
@@ -23,6 +23,11 @@ PeersParser.add_argument('endpoint', required=True, type=str,
 PeersParser.add_argument('pubkey', required=True, type=str,
                          help='Public key of this peer.')
 
+UserParser = reqparse.RequestParser()
+UserParser.add_argument('username', required=True, type=str,
+                           help='Username is required')
+UserParser.add_argument('password', required=True, type=str,
+                           help='Password is required')
 
 @auth.verify_password
 def verify(username_or_token, password):
@@ -39,6 +44,56 @@ def verify(username_or_token, password):
             return False
     g.user = user
     return True
+
+
+class UserListAPI(Resource):
+    """List and create users from/to the database context."""
+    def __init__(self):
+        self.admin = User.query.first()
+
+    @auth.login_required
+    def get(self):
+        if g.user is not self.admin:
+            return {
+                'id': g.user.id,
+                'username': g.user.username,
+                'admin': False
+            }
+
+        results = User.query.all()
+        users = {}
+        for result in results:
+            if result is self.admin:
+                users[result.id] = {
+                    'username': result.username,
+                    'admin': True
+                }
+            else:
+                users[result.id] = {
+                    'username': result.username,
+                    'admin': False
+                }
+        return users
+
+    @auth.login_required
+    def post(self):
+        if g.user is not self.admin:
+            abort(403)
+
+        args = UserParser.parse_args()
+        user = User(username=args['username'])
+        user.hash_password(args['password'])
+        db.session.add(user)
+
+        try:
+            db.session.commit()
+            return {
+                'id': user.id,
+                'username': user.username,
+                'admin': False
+            }, 201
+        except Exception:
+            return {'message': 'Resource not created.'}
 
 
 class NetaddrListAPI(Resource):
@@ -257,6 +312,7 @@ Endpoint = {}\n\n"""
         return response
 
 
+api.add_resource(UserListAPI, '/user')
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
