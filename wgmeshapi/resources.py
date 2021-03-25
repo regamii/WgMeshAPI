@@ -2,7 +2,7 @@
 Classes in this file implements the flask_restful.Resource class. Near the bottom
 of the file resources (defined as classes) are being added to the api variable.
 """
-from wgmeshapi import api, db, auth
+from wgmeshapi import app, api, db, auth
 from wgmeshapi.models import User, Netaddr, Peer
 from flask_restful import Resource, reqparse, abort
 from flask import make_response, g
@@ -29,16 +29,17 @@ UserParser.add_argument('username', required=True, type=str,
 UserParser.add_argument('password', required=True, type=str,
                            help='Password is required')
 
+
 @auth.verify_password
-def verify(username_or_token, password):
+def verify_password(username_or_token, password):
     try:
         data = jwt.decode(
-            username_or_token,
-            app.config['SECRET_KEY'],
-            algorithms=['HS256']
-        )
+                username_or_token.encode(),
+                app.config['SECRET_KEY'],
+                algorithms=['HS256']
+            )
         user = User.query.get(data['id'])
-    except Exception:
+    except:
         user = User.query.filter_by(username=username_or_token).first()
         if not user or not user.verify_password(password):
             return False
@@ -46,20 +47,22 @@ def verify(username_or_token, password):
     return True
 
 
+class AuthAPI(Resource):
+    """Get an authentication token."""
+
+    @auth.login_required
+    def get(self):
+        return {'access_token': g.user.generate_auth_token()}
+
+
 class UserListAPI(Resource):
     """List and create users from/to the database context."""
+
     def __init__(self):
         self.admin = User.query.first()
 
     @auth.login_required
     def get(self):
-        if g.user is not self.admin:
-            return {
-                'id': g.user.id,
-                'username': g.user.username,
-                'admin': False
-            }
-
         results = User.query.all()
         users = {}
         for result in results:
@@ -121,9 +124,9 @@ class UserAPI(Resource):
 
     @auth.login_required
     def put(self, id):
-        user = User.query.get_or_404(id)
         if g.user is not self.admin and g.user is not user:
             abort(403)
+        user = User.query.get_or_404(id)
 
         args = UserParser.parse_args()
         user.username = args['username']
@@ -149,9 +152,9 @@ class UserAPI(Resource):
 
     @auth.login_required
     def delete(self, id):
-        user = User.query.get_or_404(id)
         if g.user is not self.admin and g.user is not user:
             abort(403)
+        user = User.query.get_or_404(id)
 
         db.session.delete(user)
         try:
@@ -160,6 +163,21 @@ class UserAPI(Resource):
         except Exception:
             return {'message': 'Resource not deleted.'}
 
+
+class Token(Resource):
+    """Generate JWT for a specific user."""
+
+    def __init__(self):
+        self.admin = User.query.first()
+
+    @auth.login_required
+    def get(self, id):
+        user = User.query.get_or_404(id)
+        if g.user is not self.admin and g.user is not user:
+            abort(403)
+
+        token = user.generate_auth_token()
+        return {'access_token': token}
 
 
 
@@ -379,8 +397,10 @@ Endpoint = {}\n\n"""
         return response
 
 
+api.add_resource(AuthAPI, '/auth')
 api.add_resource(UserListAPI, '/user')
 api.add_resource(UserAPI, '/user/<int:id>')
+api.add_resource(Token, '/user/<int:id>/token')
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')

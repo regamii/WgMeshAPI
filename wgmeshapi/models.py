@@ -18,7 +18,9 @@ class User(db.Model):
     def generate_auth_token(self, expires_in=3600):
         return jwt.encode(
             {'id': self.id, 'exp': time.time() + expires_in},
-            app.config['SECRET_KEY'], algorithm='HS256')
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        ).decode('utf-8')
 
 
 class Netaddr(db.Model):
