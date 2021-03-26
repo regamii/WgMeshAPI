@@ -20,8 +20,3 @@ When a node fetches configuration from the API it can be instructed on the clien
 - **Read-only accounts** currently there is only a distinction between an admin and a normal account.
 - **Read-only accounts for peers** currently peers do not have an account, and are forced now to use read/write accounts.
 - **Better implement user roles and permissions**
-- **Proper Authentication header** authentication happens via HTTP Basic Auth. HTTP Basic Auth requires a username and password. One is required to send the JWT token via the username of the Basic Auth, this means password must be set to something useless.
-
-```sh
-curl -X GET -u "{JWT}:unused" http://wgmeshapi/{resouce}
-```

@@ -5,7 +5,8 @@ of the file resources (defined as classes) are being added to the api variable.
 from wgmeshapi import app, api, db, auth
 from wgmeshapi.models import User, Netaddr, Peer
 from flask_restful import Resource, reqparse, abort
-from flask import make_response, g
+from flask import g, request, make_response
+from functools import wraps
 import jwt
 
 NetaddrParser = reqparse.RequestParser()
@@ -31,24 +32,40 @@ UserParser.add_argument('password', required=True, type=str,
 
 
 @auth.verify_password
-def verify_password(username_or_token, password):
-    try:
-        data = jwt.decode(
-            username_or_token.encode(),
-            app.config['SECRET_KEY'],
-            algorithms=['HS256']
-        )
-        user = User.query.get(data['id'])
-    except:
-        user = User.query.filter_by(username=username_or_token).first()
-        if not user or not user.verify_password(password):
-            return False
+def verify_password(username, password):
+    user = User.query.filter_by(username=username).first()
+    if not user or not user.verify_password(password):
+        return False
     g.user = user
     return True
 
 
-class AuthAPI(Resource):
-    """Get an authentication token."""
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return {'message': 'Token is missing'}, 401
+
+        try:
+            data = jwt.decode(
+                token.encode(),
+                app.config['SECRET_KEY'],
+                algorithms=['HS256']
+            )
+            user = User.query.get(data['id'])
+            g.user = user
+        except Exception:
+            return {'message': 'Token is invalid'}, 401
+        return f(*args, **kwargs)
+    return decorated
+
+
+class Token(Resource):
+    """Generate JWT for a specific user."""
 
     @auth.login_required
     def get(self):
@@ -57,11 +74,11 @@ class AuthAPI(Resource):
 
 class UserListAPI(Resource):
     """List and create users from/to the database context."""
+    method_decorators = {token_required}
 
     def __init__(self):
         self.admin = User.query.first()
 
-    @auth.login_required
     def get(self):
         results = User.query.all()
         users = {}
@@ -78,7 +95,6 @@ class UserListAPI(Resource):
                 }
         return users
 
-    @auth.login_required
     def post(self):
         if g.user is not self.admin:
             abort(403)
@@ -101,11 +117,11 @@ class UserListAPI(Resource):
 
 class UserAPI(Resource):
     """Read, update and delete users from/to the database context."""
+    method_decorators = {token_required}
 
     def __init__(self):
         self.admin = User.query.first()
 
-    @auth.login_required
     def get(self, id):
         result = User.query.get_or_404(id)
 
@@ -122,7 +138,6 @@ class UserAPI(Resource):
             'admin': False
         }
 
-    @auth.login_required
     def put(self, id):
         if g.user is not self.admin and g.user is not user:
             abort(403)
@@ -150,7 +165,6 @@ class UserAPI(Resource):
         except Exception:
             return {'message': 'Resource not altered.'}
 
-    @auth.login_required
     def delete(self, id):
         if g.user is not self.admin and g.user is not user:
             abort(403)
@@ -164,26 +178,10 @@ class UserAPI(Resource):
             return {'message': 'Resource not deleted.'}
 
 
-class Token(Resource):
-    """Generate JWT for a specific user."""
-
-    def __init__(self):
-        self.admin = User.query.first()
-
-    @auth.login_required
-    def get(self, id):
-        user = User.query.get_or_404(id)
-        if g.user is not self.admin and g.user is not user:
-            abort(403)
-
-        token = user.generate_auth_token()
-        return {'access_token': token}
-
-
 class NetaddrListAPI(Resource):
     """List and create network addresses from/to the database context."""
+    method_decorators = {token_required}
 
-    @auth.login_required
     def get(self):
         results = Netaddr.query.all()
         netaddrs = {}
@@ -194,7 +192,6 @@ class NetaddrListAPI(Resource):
             }
         return netaddrs
 
-    @auth.login_required
     def post(self):
         args = NetaddrParser.parse_args()
         netaddr = Netaddr(
@@ -216,8 +213,8 @@ class NetaddrListAPI(Resource):
 
 class NetaddrAPI(Resource):
     """Read, update and delete network addresses from/to database context."""
+    method_decorators = {token_required}
 
-    @auth.login_required
     def get(self, id):
         result = Netaddr.query.get_or_404(id)
         return {
@@ -226,7 +223,6 @@ class NetaddrAPI(Resource):
             'netaddr': result.netaddr
         }
 
-    @auth.login_required
     def put(self, id):
         args = NetaddrParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
@@ -245,7 +241,6 @@ class NetaddrAPI(Resource):
         except Exception:
             return {'message': 'Resource not altered.'}
 
-    @auth.login_required
     def delete(self, id):
         netaddr = Netaddr.query.get_or_404(id)
         db.session.delete(netaddr)
@@ -258,8 +253,8 @@ class NetaddrAPI(Resource):
 
 class PeerListAPI(Resource):
     """List and create peers of/to specific network address."""
+    method_decorators = {token_required}
 
-    @auth.login_required
     def get(self, id):
         results = Netaddr.query.get_or_404(id).peers
         peers = {}
@@ -272,7 +267,6 @@ class PeerListAPI(Resource):
             }
         return peers
 
-    @auth.login_required
     def post(arg, id):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
@@ -302,8 +296,8 @@ class PeerListAPI(Resource):
 
 class PeerAPI(Resource):
     """Read, update and delete peers from/to specific network address."""
+    method_decorators = {token_required}
 
-    @auth.login_required
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -315,7 +309,6 @@ class PeerAPI(Resource):
             'pubkey': peer.pubkey
         }
 
-    @auth.login_required
     def put(self, netaddrId, peerId):
         args = PeersParser.parse_args()
         netaddr = Netaddr.query.get_or_404(netaddrId)
@@ -339,7 +332,6 @@ class PeerAPI(Resource):
         except Exception:
             return {'message': 'Resource not altered.'}
 
-    @auth.login_required
     def delete(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -353,6 +345,7 @@ class PeerAPI(Resource):
 
 class Config(Resource):
     """Generate WireGuard compatible configuration file."""
+    method_decorators = {token_required}
 
     def __init__(self):
         self.config = """[Interface]
@@ -368,7 +361,6 @@ PublicKey = {}
 AllowedIPs = {}
 Endpoint = {}\n\n"""
 
-    @auth.login_required
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         interface = netaddr.peers.filter(Peer.id == peerId).first_or_404()
@@ -396,10 +388,9 @@ Endpoint = {}\n\n"""
         return response
 
 
-api.add_resource(AuthAPI, '/auth')
+api.add_resource(Token, '/token')
 api.add_resource(UserListAPI, '/user')
 api.add_resource(UserAPI, '/user/<int:id>')
-api.add_resource(Token, '/user/<int:id>/token')
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
