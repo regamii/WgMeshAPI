@@ -17,6 +17,7 @@ When a node fetches configuration from the API it can be instructed on the clien
 - **Deployment documentation**
 - **Create Docker file**
 - **OpenAPI specification**
-- **Read-only accounts** currently there is only a distinction between an admin and a normal account.
+- **Read-only accounts** currently there is only a distinction between an admin and a normal account. 'Normal Accounts', not being the first in the database, can not create, update or delete users.
 - **Read-only accounts for peers** currently peers do not have an account, and are forced now to use read/write accounts.
 - **Better implement user roles and permissions**
+- **Check if response codes are correct**
