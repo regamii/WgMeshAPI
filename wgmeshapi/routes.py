@@ -1,7 +1,7 @@
 from wgmeshapi import app, db
 from wgmeshapi.models import User
+from wgmeshapi.parsers import UserParser
 from flask import render_template, redirect, url_for, abort
-from wgmeshapi.resources import UserParser
 
 
 @app.route('/', methods=['GET'])
@@ -26,5 +26,5 @@ def register():
     try:
         db.session.commit()
         return redirect(url_for('index'))
-    except Exception:
+    except:
         abort(400)

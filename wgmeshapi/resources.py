@@ -4,31 +4,11 @@ of the file resources (defined as classes) are being added to the api variable.
 """
 from wgmeshapi import app, api, db, auth
 from wgmeshapi.models import User, Netaddr, Peer
-from flask_restful import Resource, reqparse, abort
+from wgmeshapi.parsers import UserParser, NetaddrParser, PeerParser
+from flask_restful import Resource, abort
 from flask import g, request, make_response
 from functools import wraps
 import jwt
-
-NetaddrParser = reqparse.RequestParser()
-NetaddrParser.add_argument('description', required=True, type=str,
-                           help='Description to this network')
-NetaddrParser.add_argument('netaddr', required=True, type=str,
-                           help='Virtual network address to use')
-
-PeersParser = reqparse.RequestParser()
-PeersParser.add_argument('name', required=True, type=str, help='Name of the peer')
-PeersParser.add_argument('address', required=True, type=str,
-                         help='IP address in the overlay network')
-PeersParser.add_argument('endpoint', required=True, type=str,
-                         help='Endpoint in the \'normal\' network')
-PeersParser.add_argument('pubkey', required=True, type=str,
-                         help='Public key of this peer.')
-
-UserParser = reqparse.RequestParser()
-UserParser.add_argument('username', required=True, type=str,
-                        help='Username is required')
-UserParser.add_argument('password', required=True, type=str,
-                        help='Password is required')
 
 
 @auth.verify_password
@@ -39,29 +19,34 @@ def verify_password(username, password):
     g.user = user
     return True
 
+def token_required_for(type_of_user):
+    def token_required(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            token = None
+            if 'x-access-token' in request.headers:
+                token = request.headers['x-access-token']
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+            if not token:
+                return {'message': 'Token is missing'}, 401
 
-        if not token:
-            return {'message': 'Token is missing'}, 401
+            try:
+                data = jwt.decode(
+                    token.encode(),
+                    app.config['SECRET_KEY'],
+                    algorithms=['HS256']
+                )
+                user = User.query.get(data['id'])
+                g.user = user
 
-        try:
-            data = jwt.decode(
-                token.encode(),
-                app.config['SECRET_KEY'],
-                algorithms=['HS256']
-            )
-            user = User.query.get(data['id'])
-            g.user = user
-        except Exception:
-            return {'message': 'Token is invalid'}, 401
-        return f(*args, **kwargs)
-    return decorated
+                if type_of_user == 'user' and user.peer is not None:
+                    return abort(401)
+
+            except:
+                return {'message': 'Token is invalid'}, 401
+            return f(*args, **kwargs)
+        return decorated
+    return token_required
 
 
 class Token(Resource):
@@ -74,7 +59,7 @@ class Token(Resource):
 
 class UserListAPI(Resource):
     """List and create users from/to the database context."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def __init__(self):
         self.admin = User.query.first()
@@ -97,7 +82,7 @@ class UserListAPI(Resource):
 
     def post(self):
         if g.user is not self.admin:
-            abort(403)
+            abort(401)
 
         args = UserParser.parse_args()
         user = User(username=args['username'])
@@ -111,13 +96,13 @@ class UserListAPI(Resource):
                 'username': user.username,
                 'admin': False
             }, 201
-        except Exception:
+        except:
             return {'message': 'Resource not created.'}
 
 
 class UserAPI(Resource):
     """Read, update and delete users from/to the database context."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def __init__(self):
         self.admin = User.query.first()
@@ -140,7 +125,7 @@ class UserAPI(Resource):
 
     def put(self, id):
         if g.user is not self.admin and g.user is not user:
-            abort(403)
+            abort(401)
         user = User.query.get_or_404(id)
 
         args = UserParser.parse_args()
@@ -162,25 +147,25 @@ class UserAPI(Resource):
                 'username': user.username,
                 'admin': False
             }
-        except Exception:
+        except:
             return {'message': 'Resource not altered.'}
 
     def delete(self, id):
         if g.user is not self.admin and g.user is not user:
-            abort(403)
+            abort(401)
         user = User.query.get_or_404(id)
 
         db.session.delete(user)
         try:
             db.session.commit()
             return None, 204
-        except Exception:
+        except:
             return {'message': 'Resource not deleted.'}
 
 
 class NetaddrListAPI(Resource):
     """List and create network addresses from/to the database context."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def get(self):
         results = Netaddr.query.all()
@@ -207,13 +192,13 @@ class NetaddrListAPI(Resource):
                 'description': netaddr.description,
                 'netaddr': netaddr.netaddr
             }, 201
-        except Exception:
+        except:
             return {'message': 'Resource not created.'}
 
 
 class NetaddrAPI(Resource):
     """Read, update and delete network addresses from/to database context."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def get(self, id):
         result = Netaddr.query.get_or_404(id)
@@ -238,7 +223,7 @@ class NetaddrAPI(Resource):
                 'description': netaddr.description,
                 'netaddr': netaddr.netaddr
             }
-        except Exception:
+        except:
             return {'message': 'Resource not altered.'}
 
     def delete(self, id):
@@ -247,20 +232,21 @@ class NetaddrAPI(Resource):
         try:
             db.session.commit()
             return None, 204
-        except Exception:
+        except:
             return {'message': 'Resource not deleted.'}
 
 
 class PeerListAPI(Resource):
     """List and create peers of/to specific network address."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def get(self, id):
         results = Netaddr.query.get_or_404(id).peers
         peers = {}
         for result in results:
             peers[result.id] = {
-                'name': result.name,
+                'user_id': result.user.id,
+                'name': result.user.username,
                 'address': result.address,
                 'endpoint': result.endpoint,
                 'pubkey': result.pubkey
@@ -268,53 +254,59 @@ class PeerListAPI(Resource):
         return peers
 
     def post(arg, id):
-        args = PeersParser.parse_args()
+        args = PeerParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
 
-        peer = Peer(
-            name=args['name'],
-            netaddr_id=netaddr.id,
-            address=args['address'],
-            endpoint=args['endpoint'],
-            pubkey=args['pubkey']
-        )
-        db.session.add(peer)
-
         try:
+            user = User(username=args['name'])
+            user.hash_password(args['password'])
+            db.session.add(user)
             db.session.commit()
-            peer = Peer.query.get(peer.id)
+
+            peer = Peer(
+                netaddr_id=netaddr.id,
+                user_id=user.id,
+                address=args['address'],
+                endpoint=args['endpoint'],
+                pubkey=args['pubkey']
+            )
+            db.session.add(peer)
+            db.session.commit()
+
             return {
                 'id': peer.id,
-                'name': peer.name,
+                'user_id': peer.user.id,
+                'name': peer.user.username,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
                 'pubkey': peer.pubkey
             }, 201
-        except Exception:
+        except:
             return {'message': 'Resource not created.'}
 
 
 class PeerAPI(Resource):
     """Read, update and delete peers from/to specific network address."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('user')}
 
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
         return {
             'id': peer.id,
-            'name': peer.name,
+            'user_id': peer.user.id,
+            'name': peer.user.username,
             'address': peer.address,
             'endpoint': peer.endpoint,
             'pubkey': peer.pubkey
         }
 
     def put(self, netaddrId, peerId):
-        args = PeersParser.parse_args()
+        args = PeerParser.parse_args()
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
 
-        peer.name = args['name']
+        peer.user.username = args['name']
         peer.address = args['address']
         peer.endpoint = args['endpoint']
         peer.pubkey = args['pubkey']
@@ -324,28 +316,31 @@ class PeerAPI(Resource):
             db.session.commit()
             return {
                 'id': peer.id,
-                'name': peer.name,
+                'user_id': peer.user.id,
+                'name': peer.user.username,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
                 'pubkey': peer.pubkey
             }
-        except Exception:
+        except:
             return {'message': 'Resource not altered.'}
 
     def delete(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
+        user = peer.user
         db.session.delete(peer)
+        db.session.delete(user)
         try:
             db.session.commit()
             return None, 204
-        except Exception:
+        except:
             return {'message': 'Resource not deleted.'}
 
 
 class Config(Resource):
     """Generate WireGuard compatible configuration file."""
-    method_decorators = {token_required}
+    method_decorators = {token_required_for('peer')}
 
     def __init__(self):
         self.config = """[Interface]
@@ -369,7 +364,7 @@ Endpoint = {}\n\n"""
 
         self.config = self.config.format(
             netaddr.description,
-            interface.name,
+            interface.user.username,
             interface.address,
             interface.listenPort
         )
@@ -377,7 +372,7 @@ Endpoint = {}\n\n"""
         for peer in peers:
             self.config += self.peer.format(
                 netaddr.description,
-                peer.name,
+                peer.user.username,
                 peer.pubkey,
                 peer.address.split('/')[0] + '/32',
                 peer.endpoint
