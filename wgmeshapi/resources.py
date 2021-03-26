@@ -25,19 +25,19 @@ PeersParser.add_argument('pubkey', required=True, type=str,
 
 UserParser = reqparse.RequestParser()
 UserParser.add_argument('username', required=True, type=str,
-                           help='Username is required')
+                        help='Username is required')
 UserParser.add_argument('password', required=True, type=str,
-                           help='Password is required')
+                        help='Password is required')
 
 
 @auth.verify_password
 def verify_password(username_or_token, password):
     try:
         data = jwt.decode(
-                username_or_token.encode(),
-                app.config['SECRET_KEY'],
-                algorithms=['HS256']
-            )
+            username_or_token.encode(),
+            app.config['SECRET_KEY'],
+            algorithms=['HS256']
+        )
         user = User.query.get(data['id'])
     except:
         user = User.query.filter_by(username=username_or_token).first()
@@ -178,7 +178,6 @@ class Token(Resource):
 
         token = user.generate_auth_token()
         return {'access_token': token}
-
 
 
 class NetaddrListAPI(Resource):

@@ -11,3 +11,17 @@ Why WgMeshAPI when there are probably better tools like k4yt3x/wg-meshconfig and
 If the API holds all the data it will be valuable target. WireGuard uses [Public-key cryptography](https://en.wikipedia.org/wiki/Public-key_cryptography) meaning there is a public and private key. The public key you can give to others, like the API. The API will only hold public keys. With public keys and connection information WireGuard peers can be generated, and the `[Interface]` section partly generated.
 
 When a node fetches configuration from the API it can be instructed on the client side to add the private key, stored locally, to the configuration. No node can use the configuration of a random peer because this node does not have the proper private key belonging to the public key. Hijacking is only possible if the attacker has the private key of one of the nodes.
+
+## ToDo
+- **API resources documentation**
+- **Deployment documentation**
+- **Create Docker file**
+- **OpenAPI specification**
+- **Read-only accounts** currently there is only a distinction between an admin and a normal account.
+- **Read-only accounts for peers** currently peers do not have an account, and are forced now to use read/write accounts.
+- **Better implement user roles and permissions**
+- **Proper Authentication header** authentication happens via HTTP Basic Auth. HTTP Basic Auth requires a username and password. One is required to send the JWT token via the username of the Basic Auth, this means password must be set to something useless.
+
+```sh
+curl -X GET -u "{JWT}:unused" http://wgmeshapi/{resouce}
+```
