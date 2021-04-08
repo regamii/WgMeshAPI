@@ -97,7 +97,7 @@ class UserListAPI(Resource):
                 'admin': False
             }, 201
         except:
-            return {'message': 'Resource not created.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
 
 class UserAPI(Resource):
@@ -148,7 +148,7 @@ class UserAPI(Resource):
                 'admin': False
             }
         except:
-            return {'message': 'Resource not altered.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
     def delete(self, id):
         if g.user is not self.admin and g.user is not user:
@@ -160,7 +160,7 @@ class UserAPI(Resource):
             db.session.commit()
             return None, 204
         except:
-            return {'message': 'Resource not deleted.'}
+            return {'message': 'Resource not deleted.'}, 500
 
 
 class NetaddrListAPI(Resource):
@@ -193,7 +193,7 @@ class NetaddrListAPI(Resource):
                 'netaddr': netaddr.netaddr
             }, 201
         except:
-            return {'message': 'Resource not created.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
 
 class NetaddrAPI(Resource):
@@ -224,7 +224,7 @@ class NetaddrAPI(Resource):
                 'netaddr': netaddr.netaddr
             }
         except:
-            return {'message': 'Resource not altered.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
     def delete(self, id):
         netaddr = Netaddr.query.get_or_404(id)
@@ -233,7 +233,7 @@ class NetaddrAPI(Resource):
             db.session.commit()
             return None, 204
         except:
-            return {'message': 'Resource not deleted.'}
+            return {'message': 'Resource not deleted.'}, 500
 
 
 class PeerListAPI(Resource):
@@ -282,7 +282,7 @@ class PeerListAPI(Resource):
                 'pubkey': peer.pubkey
             }, 201
         except:
-            return {'message': 'Resource not created.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
 
 class PeerAPI(Resource):
@@ -323,7 +323,7 @@ class PeerAPI(Resource):
                 'pubkey': peer.pubkey
             }
         except:
-            return {'message': 'Resource not altered.'}
+            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available'}, 500
 
     def delete(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
@@ -335,7 +335,7 @@ class PeerAPI(Resource):
             db.session.commit()
             return None, 204
         except:
-            return {'message': 'Resource not deleted.'}
+            return {'message': 'Resource not deleted.'}, 500
 
 
 class Config(Resource):
