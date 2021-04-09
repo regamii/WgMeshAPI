@@ -18,11 +18,11 @@ Each of the endpoints below manipulates or displays information about users. Bas
 
 ### Netaddr
 Each of the endpoints below manipulates or displays information about network addresses. Peers, list below, will belong to a specific network address.
-- List all network addresses : `GET /netaddr`
-- Create network address : `POST /netaddr`
-- List specific network address : `GET /netaddr/<int:id>`
-- Alter specific network address : `PUT /netaddr/<int:id>`
-- Delete specific network address : `DELETE /netaddr/<int:id>`
+- [List all network addresses](netaddr/get.md) : `GET /netaddr`
+- [Create network address](netaddr/post.md) : `POST /netaddr`
+- [List specific network address](netaddr/id/get.md) : `GET /netaddr/<int:id>`
+- [Alter specific network address](netaddr/id/put.md) : `PUT /netaddr/<int:id>`
+- [Delete specific network address](netaddr/id/delete.md) : `DELETE /netaddr/<int:id>`
 
 ### Peer
 Each of the endpoints below manipulates or displays information about peers. Each peer is tied to a specific network address, in a **one-to-many**. One network address can have many peers.

@@ -1,27 +1,27 @@
-# Alter specific user
-Alter specific registered user, **admin only**.
+# Alter specific network address
+Alter a specific network address.
 
-- **URL** : `/user/<int:id>`
+- **URL** : `/netaddr/<int:id>`
 - **Method** : `PUT`
 - **Auth** : `x-access-token: <jwt>`
 - **Content-Type** : application/x-www-form-urlencoded
 - **Data constraints** :
 
 ```
-username=<alphanumeric>&password=<alphanumeric>
+description=<alphanumeric>&netaddr=<alphanumeric>
 ```
 
 - **Data example**
 
 ```
-username=MyNotSoCoolUsername&password=MyNotSoCoolPassword
+description=Netaddr1&netaddr=10.1.0.0/16
 ```
 
 ## Example Call
-In this example an existing user is altered by the admin account. In this example the JWT belongs to the admin user. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example an existing network address is altered by the a 'normal' user, or admin, account. In this example the JWT belongs to either a 'normal' user, or admin. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/user/2
+curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/netaddr/1
 ```
 
 ## Success Response
@@ -31,9 +31,9 @@ curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" 
 
 ```json
 {
-    "id": 2,
-    "username": "MyNotSoCoolUsername",
-    "admin": false
+    "id": 1,
+    "description": "Netaddr1",
+    "netaddr": "10.1.0.0/16"
 }
 ```
 
@@ -55,7 +55,7 @@ curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" 
 ```json
 {
     "message": {
-        "username": "Username is required"
+        "description": "Description to this network"
     }
 }
 ```
@@ -67,7 +67,7 @@ curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" 
 ```json
 {
     "message": {
-        "password": "Password is required"
+        "netaddr": "Virtual network address to use"
     }
 }
 ```

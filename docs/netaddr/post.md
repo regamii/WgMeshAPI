@@ -1,27 +1,27 @@
-# Create a user
-Create a new user, **admin only**.
+# Create network address
+Create a new network address.
 
-- **URL** : `/user`
+- **URL** : `/netaddr`
 - **Method** : `POST`
 - **Auth** : `x-access-token: <jwt>`
 - **Content-Type** : application/x-www-form-urlencoded
 - **Data constraints** :
 
 ```
-username=<alphanumeric>&password=<alphanumeric>
+description=<alphanumeric>&netaddr=<alphanumeric>
 ```
 
 - **Data example**
 
 ```
-username=MyCoolUsername&password=MyCoolPassword
+description=Netaddr1&netaddr=10.1.0.0/16
 ```
 
 ## Example Call
-In this example a new user is created by the admin account. In this example the JWT belongs to the admin user. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example a new network address is created. In this example the JWT belongs to either a 'normal' user, or admin. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/user
+curl -X POST -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/netaddr
 ```
 
 ## Success Response
@@ -31,9 +31,9 @@ curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-acc
 
 ```json
 {
-    "id": 2,
-    "username": "MyCoolUsername",
-    "admin": false
+    "id": 1,
+    "description": "Network1",
+    "netaddr": "10.1.0.0/16"
 }
 ```
 
@@ -45,7 +45,7 @@ curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-acc
 ```json
 {
     "message": {
-        "username": "Username is required"
+        "netaddr": "Virtual network address to use"
     }
 }
 ```
@@ -57,7 +57,7 @@ curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-acc
 ```json
 {
     "message": {
-        "password": "Password is required"
+        "netaddr": "Virtual network address to use"
     }
 }
 ```
