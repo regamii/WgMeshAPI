@@ -26,9 +26,9 @@ Each of the endpoints below manipulates or displays information about network ad
 
 ### Peer
 Each of the endpoints below manipulates or displays information about peers. Each peer is tied to a specific network address, in a **one-to-many**. One network address can have many peers.
-- List all peers : `GET /netaddr/<int:id>/peer`
-- Create peer : `GET /netaddr/<int:id>/peer`
-- List specific peer : `GET /netaddr/<int:id>/peer/<int:id>`
-- Alter specific peer : `PUT /netaddr/<int:id>/peer/<int:id>`
-- Delete specific peer : `DELETE /netaddr/<int:id>/peer/<int:id>`
-- Generate WireGuard config specific to peer : `GET /netaddr/<int:id>/peer/<int:id>/config`
+- [List all network address specific peers](peer/get.md) : `GET /netaddr/<int:id>/peer`
+- [Create network address specific peer](peer/post.md) : `GET /netaddr/<int:id>/peer`
+- [List specific peer from specific network address](peer/id/get.md) : `GET /netaddr/<int:id>/peer/<int:id>`
+- [Alter specific peer from specific network address](peer/id/put.md) : `PUT /netaddr/<int:id>/peer/<int:id>`
+- [Delete specific peer from specific network address](peer/id/delete.md) : `DELETE /netaddr/<int:id>/peer/<int:id>`
+- [Generate WireGuard configuration specific to a peer](peer/id/config.md) : `GET /netaddr/<int:id>/peer/<int:id>/config`

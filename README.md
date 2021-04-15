@@ -41,7 +41,6 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 API Reference can be found [here](docs/README.md).
 
 ## ToDo
-- **API resources documentation**
 - **Deployment documentation**
 - **Create Docker file**
 - **OpenAPI specification conformity**
