@@ -42,6 +42,5 @@ API Reference can be found [here](docs/README.md).
 
 ## ToDo
 - **Deployment documentation**
-- **Create Docker file**
 - **OpenAPI specification conformity**
 - **Extensively test the API for potential misbehavior**
