@@ -1,5 +1,5 @@
-# WgMeshAPI
-In the examples the API is hosted at `http://wgmeshapi/` and cURL is used for example calls
+# WgMeshAPI Documentation
+All API endpoints are housed under the `/api` prefix. In the examples the API is hosted at `http://wgmeshapi/` and cURL is used for example calls
 
 ## Open Endpoints
 Open endpoints require no authenticating

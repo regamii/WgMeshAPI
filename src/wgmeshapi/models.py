@@ -22,7 +22,7 @@ class User(db.Model):
             {'id': self.id, 'exp': time.time() + expires_in},
             app.config['SECRET_KEY'],
             algorithm='HS256'
-        ).decode('utf-8')
+        )
 
 
 class Netaddr(db.Model):

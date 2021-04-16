@@ -21,7 +21,7 @@ username=MyCoolUsername&password=MyCoolPassword
 In this example a new user is created by the admin account. In this example the JWT belongs to the admin user. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/user
+curl -X POST -d "username=MyCoolUsername" -d "password=MyCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/user
 ```
 
 ## Success Response

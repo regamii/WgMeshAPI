@@ -10,7 +10,7 @@ Used to get an JWT for a registered user. A token is **valid for 1 Hour**
 In this example a token will be fetched for a registered user: username = `user`, password = `secret`.
 
 ```sh
-curl -X GET -u "user:secret" http://wgmeshapi/token
+curl -X GET -u "user:secret" http://wgmeshapi/api/token
 ```
 
 ## Success Response

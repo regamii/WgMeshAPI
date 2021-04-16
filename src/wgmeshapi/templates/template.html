@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WgMeshAPI | Documentation</title>
+    {% if title %}
+      <title>WgMeshAPI | {{ title }}</title>
+    {% else %}
+      <title>WgMeshAPI</title>
+    {% endif %}
     <style>
       @media (prefers-color-scheme: dark){
         body {color:#fff;background:#000}
@@ -28,9 +32,14 @@
           max-width:none
         }
       }
+
+      input[type=text], input[type=password] {
+        width: 100%;
+        padding: 5px;
+      }
     </style>
   </head>
   <body>
-    <h1>WgMeshAPI Documentation</h1>
+    {% block content %}{% endblock %}
   </body>
 </html>

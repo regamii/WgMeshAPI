@@ -2,7 +2,7 @@
 Classes in this file implements the flask_restful.Resource class. Near the bottom
 of the file resources (defined as classes) are being added to the api variable.
 """
-from wgmeshapi import app, api, db, auth
+from wgmeshapi import app, api_bp, api, db, auth
 from wgmeshapi.models import User, Netaddr, Peer
 from wgmeshapi.parsers import UserParser, NetaddrParser, PeerParser
 from flask_restful import Resource, abort
@@ -32,7 +32,7 @@ def token_required_for(type_of_user):
 
             try:
                 data = jwt.decode(
-                    token.encode(),
+                    token,
                     app.config['SECRET_KEY'],
                     algorithms=['HS256']
                 )
@@ -391,3 +391,4 @@ api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
 api.add_resource(PeerAPI, '/netaddr/<int:netaddrId>/peer/<int:peerId>')
 api.add_resource(Config, '/netaddr/<int:netaddrId>/peer/<int:peerId>/config')
+app.register_blueprint(api_bp, url_prefix='/api')

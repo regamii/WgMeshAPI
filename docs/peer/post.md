@@ -21,7 +21,7 @@ name=Netaddr1Peer1&address=10.1.0.1/16&endpoint=192.168.0.100:58120&pubkey=ejnBY
 In this example a new network address is created. In this example the JWT belongs to either a 'normal' user, or admin. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X POST -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" -d "name=Netaddr1Peer1" -d "address=10.1.0.1/16" -d "endpoint=192.168.0.100:58120" -d "pubkey=ejnBYSmh6UNWVF/Ct/%2BJu/SxiaioBdUGBHBzlYMwpyU=" -d "password=secret" http://wgmeshapi/netaddr/1/peer
+curl -X POST -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" -d "name=Netaddr1Peer1" -d "address=10.1.0.1/16" -d "endpoint=192.168.0.100:58120" -d "pubkey=ejnBYSmh6UNWVF/Ct/%2BJu/SxiaioBdUGBHBzlYMwpyU=" -d "password=secret" http://wgmeshapi/api/netaddr/1/peer
 ```
 
 ## Success Response

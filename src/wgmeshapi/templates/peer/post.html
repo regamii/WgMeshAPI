@@ -1,0 +1,109 @@
+{% extends "template.html" %}
+{% block content %}
+    <h1 id="create-network-address-specific-peer">Create network address specific peer</h1>
+    <p>Create a new peer specific to a network address.</p>
+    <ul>
+    <li><strong>URL</strong> : <code>/netaddr/&lt;int:id&gt;/peer</code></li>
+    <li><strong>Method</strong> : <code>POST</code></li>
+    <li><strong>Auth</strong> : <code>x-access-token: &lt;jwt&gt;</code></li>
+    <li><strong>Content-Type</strong> : application/x-www-form-urlencoded</li>
+    <li><strong>Data constraints</strong> :</li>
+    </ul>
+    <pre><code>name=&lt;alphanumeric&gt;&amp;address=&lt;alphanumeric&gt;&amp;endpoint=&lt;alphanumeric&gt;&amp;pubkey=&lt;alphanumeric&gt;&amp;password=&lt;alphanumeric&gt;</code></pre>
+    <ul>
+    <li><strong>Data example</strong></li>
+    </ul>
+    <pre><code>name=Netaddr1Peer1&amp;address=10.1.0.1/16&amp;endpoint=192.168.0.100:58120&amp;pubkey=ejnBYSmh6UNWVF/Ct/%2BJu/SxiaioBdUGBHBzlYMwpyU=&amp;password=secret</code></pre>
+    <h2 id="example-call">Example Call</h2>
+    <p>In this example a new network address is created. In this example the JWT belongs to either a ‘normal’ user, or admin. In <code>x-access-token: &lt;jwt&gt;</code>, <code>&lt;jwt&gt;</code> is replaced with a JWT acquired from the <code>/token</code> endpoint.</p>
+    <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-X</span> POST <span class="at">-H</span> <span class="st">&quot;x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U&quot;</span> <span class="at">-d</span> <span class="st">&quot;name=Netaddr1Peer1&quot;</span> <span class="at">-d</span> <span class="st">&quot;address=10.1.0.1/16&quot;</span> <span class="at">-d</span> <span class="st">&quot;endpoint=192.168.0.100:58120&quot;</span> <span class="at">-d</span> <span class="st">&quot;pubkey=ejnBYSmh6UNWVF/Ct/%2BJu/SxiaioBdUGBHBzlYMwpyU=&quot;</span> <span class="at">-d</span> <span class="st">&quot;password=secret&quot;</span> http://wgmeshapi/api/netaddr/1/peer</span></code></pre></div>
+    <h2 id="success-response">Success Response</h2>
+    <ul>
+    <li><strong>Code</strong> : <code>201 CREATED</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb4"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+    <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;user_id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+    <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Netaddr1Peer1&quot;</span><span class="fu">,</span></span>
+    <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;10.1.0.1/16&quot;</span><span class="fu">,</span></span>
+    <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;endpoint&quot;</span><span class="fu">:</span> <span class="st">&quot;192.168.0.100:58120&quot;</span><span class="fu">,</span></span>
+    <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;pubkey&quot;</span><span class="fu">:</span> <span class="st">&quot;ejnBYSmh6UNWVF/Ct/+Ju/SxiaioBdUGBHBzlYMwpyU=&quot;</span></span>
+    <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <h2 id="error-response">Error Response</h2>
+    <ul>
+    <li><strong>Code</strong> : <code>400 BAD REQUEST</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb5"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+    <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Name of the peer&quot;</span></span>
+    <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+    <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>400 BAD REQUEST</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb6"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+    <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;address&quot;</span><span class="fu">:</span> <span class="st">&quot;IP address in the overlay network&quot;</span></span>
+    <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+    <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>400 BAD REQUEST</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb7"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+    <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;endpoint&quot;</span><span class="fu">:</span> <span class="st">&quot;Endpoint in the &#39;normal&#39; network&quot;</span></span>
+    <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+    <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>400 BAD REQUEST</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+    <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;pubkey&quot;</span><span class="fu">:</span> <span class="st">&quot;Public key of this peer.&quot;</span></span>
+    <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+    <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>400 BAD REQUEST</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb9"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+    <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;Password is required&quot;</span></span>
+    <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+    <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>500 INTERNAL SERVER ERROR</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb10"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available.&quot;</span></span>
+    <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code</strong> : <code>401 UNAUTHORIZED</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb11"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Token is missing&quot;</span></span>
+    <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+    <ul>
+    <li><strong>Code:</strong> : <code>401 UNAUTHORIZED</code></li>
+    <li><strong>Content-Type</strong> : <code>application/json</code></li>
+    <li><strong>Content</strong> :</li>
+    </ul>
+    <div class="sourceCode" id="cb12"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+    <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Token is invalid&quot;</span></span>
+    <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+{% endblock content %}

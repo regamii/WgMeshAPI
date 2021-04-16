@@ -21,7 +21,7 @@ username=MyNotSoCoolUsername&password=MyNotSoCoolPassword
 In this example an existing user is altered by the admin account. In this example the JWT belongs to the admin user. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/user/2
+curl -X PUT -d "username=MyNotSoCoolUsername" -d "password=MyNotSoCoolPassword" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/user/2
 ```
 
 ## Success Response
