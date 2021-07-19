@@ -9,7 +9,6 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), unique=True)
     password = db.Column(db.String(128))
-    peer = db.relationship('Peer', backref='user', uselist=False)
 
     def hash_password(self, password):
         self.password = generate_password_hash(password)
@@ -37,7 +36,8 @@ class Peer(db.Model):
     """Model defining the peers, related network addresses, object."""
     id = db.Column(db.Integer, primary_key=True)
     netaddr_id = db.Column(db.Integer, db.ForeignKey('netaddr.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    friendlyname = db.Column(db.String(32), unique=True, nullable=False)
     address = db.Column(db.String(18), unique=True, nullable=False)
     endpoint = db.Column(db.String(21), unique=True, nullable=False)
     pubkey = db.Column(db.String(44), unique=True, nullable=False)
+    apikey = db.Column(db.String(256), unique=True, nullable=False)

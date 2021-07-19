@@ -1,7 +1,7 @@
 {% extends "template.html" %}
 {% block content %}
     <h1>WgMeshAPI Admin Registration</h1>
-    <p>WgMeshAPI has detected that there are currently no accounts registered. Please fill in the account details below to create an account. The account created here, being the first, will have elevated privileges over others, read <em>Users</em> section for more details.</p>
+    <p>WgMeshAPI has detected that there are currently no accounts registered. Please fill in the account details below to create an account.</p>
     <form action="/" method="POST">
       <label for="username"><b>Username</b></label>
       <input type="text" name="username" id="username" placeholder="Enter a username..." required>
@@ -9,6 +9,4 @@
       <input type="password" name="password" id="password" placeholder="Enter a password..." required>
       <button type="submit">Register</button>
     </form>
-    <h2>Users</h2>
-    The first account in the database will have elevated privileges. This user can alter and delete other users. Users after the first user in the database can not: create, update or delete other users. They can only update or delete themselves.
 {% endblock content %}

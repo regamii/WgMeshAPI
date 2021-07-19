@@ -16,37 +16,48 @@ def verify_password(username, password):
     user = User.query.filter_by(username=username).first()
     if not user or not user.verify_password(password):
         return False
-    g.user = user
+    g.client = user
     return True
 
-def token_required_for(type_of_user):
-    def token_required(f):
-        @wraps(f)
-        def decorated(*args, **kwargs):
-            token = None
-            if 'x-access-token' in request.headers:
-                token = request.headers['x-access-token']
+def jwt_decode():
+    token = None
+    if 'x-access-token' in request.headers:
+        token = request.headers['x-access-token']
+    if not token:
+        return
+    try:
+        data = jwt.decode(
+            token,
+            app.config['SECRET_KEY'],
+            algorithms=['HS256']
+        )
+    except:
+        return
+    return data
 
-            if not token:
-                return {'message': 'Token is missing'}, 401
+def token_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        data = jwt_decode()
+        if not data:
+            return {'message': 'Token is invalid'}, 401
+        elif 'pubkey' in data:
+            return {'message': 'Unauthorized'}, 401
+        g.user = User.query.get(data['id'])
+        return f(*args, **kwargs)
+    return wrapper
 
-            try:
-                data = jwt.decode(
-                    token,
-                    app.config['SECRET_KEY'],
-                    algorithms=['HS256']
-                )
-                user = User.query.get(data['id'])
-                g.user = user
-
-                if type_of_user == 'user' and user.peer is not None:
-                    return abort(401)
-
-            except:
-                return {'message': 'Token is invalid'}, 401
-            return f(*args, **kwargs)
-        return decorated
-    return token_required
+def peer_token_required(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        data = jwt_decode()
+        if not data:
+            return {'message': 'Peer token required'}, 401
+        elif 'id' in data:
+            return {'message': 'Token is invalid'}, 401
+        g.peer = Peer.query.filter_by(pubkey=data['pubkey']).first()
+        return f(*args, **kwargs)
+    return wrapper
 
 
 class Token(Resource):
@@ -54,108 +65,39 @@ class Token(Resource):
 
     @auth.login_required
     def get(self):
-        return {'access_token': g.user.generate_auth_token()}
-
-
-class UserListAPI(Resource):
-    """List and create users from/to the database context."""
-    method_decorators = {token_required_for('user')}
-
-    def __init__(self):
-        self.admin = User.query.first()
-
-    def get(self):
-        results = User.query.all()
-        users = {}
-        for result in results:
-            if result is self.admin:
-                users[result.id] = {
-                    'username': result.username,
-                    'admin': True
-                }
-            else:
-                users[result.id] = {
-                    'username': result.username,
-                    'admin': False
-                }
-        return users
-
-    def post(self):
-        if g.user is not self.admin:
-            abort(401)
-
-        args = UserParser.parse_args()
-        user = User(username=args['username'])
-        user.hash_password(args['password'])
-        db.session.add(user)
-
-        try:
-            db.session.commit()
-            return {
-                'id': user.id,
-                'username': user.username,
-                'admin': False
-            }, 201
-        except:
-            return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available.'}, 500
+        return {'access_token': g.client.generate_auth_token()}
 
 
 class UserAPI(Resource):
-    """Read, update and delete users from/to the database context."""
-    method_decorators = {token_required_for('user')}
+    """Read, update and delete user from/to the database context."""
+    method_decorators = [token_required]
 
     def __init__(self):
-        self.admin = User.query.first()
+        self.user = User.query.first()
 
-    def get(self, id):
-        result = User.query.get_or_404(id)
-
-        if result is self.admin:
-            return {
-                'id': result.id,
-                'username': result.username,
-                'admin': True
-            }
-
+    def get(self):
         return {
-            'id': result.id,
-            'username': result.username,
-            'admin': False
+            'id': self.user.id,
+            'username': self.user.username,
         }
 
-    def put(self, id):
-        if g.user is not self.admin and g.user is not user:
-            abort(401)
-        user = User.query.get_or_404(id)
-
+    def put(self):
         args = UserParser.parse_args()
-        user.username = args['username']
-        user.hash_password(args['password'])
-        db.session.add(user)
+        self.user.username = args['username']
+        self.user.hash_password(args['password'])
+        db.session.add(self.user)
 
         try:
             db.session.commit()
-            if user is self.admin:
-                return {
-                    'id': user.id,
-                    'username': user.username,
-                    'admin': True
-                }
-
             return {
-                'id': user.id,
-                'username': user.username,
-                'admin': False
+                'id': self.user.id,
+                'username': self.user.username
             }
         except:
             return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available.'}, 500
 
-    def delete(self, id):
-        if g.user is not self.admin and g.user is not user:
-            abort(401)
-        user = User.query.get_or_404(id)
-
-        db.session.delete(user)
+    def delete(self):
+        db.session.delete(self.user)
         try:
             db.session.commit()
             return None, 204
@@ -165,7 +107,7 @@ class UserAPI(Resource):
 
 class NetaddrListAPI(Resource):
     """List and create network addresses from/to the database context."""
-    method_decorators = {token_required_for('user')}
+    method_decorators = [token_required]
 
     def get(self):
         results = Netaddr.query.all()
@@ -198,7 +140,7 @@ class NetaddrListAPI(Resource):
 
 class NetaddrAPI(Resource):
     """Read, update and delete network addresses from/to database context."""
-    method_decorators = {token_required_for('user')}
+    method_decorators = [token_required]
 
     def get(self, id):
         result = Netaddr.query.get_or_404(id)
@@ -238,18 +180,18 @@ class NetaddrAPI(Resource):
 
 class PeerListAPI(Resource):
     """List and create peers of/to specific network address."""
-    method_decorators = {token_required_for('user')}
+    method_decorators = [token_required]
 
     def get(self, id):
         results = Netaddr.query.get_or_404(id).peers
         peers = {}
         for result in results:
             peers[result.id] = {
-                'user_id': result.user.id,
-                'name': result.user.username,
+                'friendlyname': result.friendlyname,
                 'address': result.address,
                 'endpoint': result.endpoint,
-                'pubkey': result.pubkey
+                'pubkey': result.pubkey,
+                'access_token': result.apikey
             }
         return peers
 
@@ -257,29 +199,28 @@ class PeerListAPI(Resource):
         args = PeerParser.parse_args()
         netaddr = Netaddr.query.get_or_404(id)
 
-        try:
-            user = User(username=args['name'])
-            user.hash_password(args['password'])
-            db.session.add(user)
-            db.session.commit()
-
-            peer = Peer(
-                netaddr_id=netaddr.id,
-                user_id=user.id,
-                address=args['address'],
-                endpoint=args['endpoint'],
-                pubkey=args['pubkey']
+        peer = Peer(
+            netaddr_id=netaddr.id,
+            friendlyname=args['friendlyname'],
+            address=args['address'],
+            endpoint=args['endpoint'],
+            pubkey=args['pubkey'],
+            apikey=jwt.encode(
+                {'pubkey': args['pubkey']},
+                app.config['SECRET_KEY'],
+                algorithm='HS256'
             )
-            db.session.add(peer)
-            db.session.commit()
+        )
+        db.session.add(peer)
 
+        try:
+            db.session.commit()
             return {
-                'id': peer.id,
-                'user_id': peer.user.id,
-                'name': peer.user.username,
+                'friendlyname': peer.friendlyname,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
-                'pubkey': peer.pubkey
+                'pubkey': peer.pubkey,
+                'access_token': peer.apikey
             }, 201
         except:
             return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available.'}, 500
@@ -287,18 +228,18 @@ class PeerListAPI(Resource):
 
 class PeerAPI(Resource):
     """Read, update and delete peers from/to specific network address."""
-    method_decorators = {token_required_for('user')}
+    method_decorators = [token_required]
 
     def get(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
         return {
             'id': peer.id,
-            'user_id': peer.user.id,
-            'name': peer.user.username,
+            'friendlyname': peer.friendlyname,
             'address': peer.address,
             'endpoint': peer.endpoint,
-            'pubkey': peer.pubkey
+            'pubkey': peer.pubkey,
+            'access_token': peer.apikey
         }
 
     def put(self, netaddrId, peerId):
@@ -306,21 +247,26 @@ class PeerAPI(Resource):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
 
-        peer.user.username = args['name']
+        peer.friendlyname = args['friendlyname']
         peer.address = args['address']
         peer.endpoint = args['endpoint']
         peer.pubkey = args['pubkey']
+        peer.apikey = jwt.encode(
+            {'pubkey': args['pubkey']},
+            app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
         db.session.add(peer)
 
         try:
             db.session.commit()
             return {
                 'id': peer.id,
-                'user_id': peer.user.id,
-                'name': peer.user.username,
+                'friendlyname': peer.friendlyname,
                 'address': peer.address,
                 'endpoint': peer.endpoint,
-                'pubkey': peer.pubkey
+                'pubkey': peer.pubkey,
+                'access_token': peer.apikey
             }
         except:
             return {'message': 'The action could not be successfully performed. This could be due to unique constraints in the database, or the database not being available.'}, 500
@@ -328,9 +274,7 @@ class PeerAPI(Resource):
     def delete(self, netaddrId, peerId):
         netaddr = Netaddr.query.get_or_404(netaddrId)
         peer = netaddr.peers.filter(Peer.id == peerId).first_or_404()
-        user = peer.user
         db.session.delete(peer)
-        db.session.delete(user)
         try:
             db.session.commit()
             return None, 204
@@ -340,7 +284,7 @@ class PeerAPI(Resource):
 
 class Config(Resource):
     """Generate WireGuard compatible configuration file."""
-    method_decorators = {token_required_for('peer')}
+    method_decorators = [peer_token_required]
 
     def __init__(self):
         self.config = """[Interface]
@@ -356,23 +300,19 @@ PublicKey = {}
 AllowedIPs = {}
 Endpoint = {}\n\n"""
 
-    def get(self, netaddrId, peerId):
-        netaddr = Netaddr.query.get_or_404(netaddrId)
-        interface = netaddr.peers.filter(Peer.id == peerId).first_or_404()
-        interface.listenPort = interface.endpoint.split(':')[1]
-        peers = Peer.query.filter(Peer.id != peerId).all()
-
+    def get(self):
+        peers = Peer.query.filter(Peer.id != g.peer.id).all()
         self.config = self.config.format(
-            netaddr.description,
-            interface.user.username,
-            interface.address,
-            interface.listenPort
+            g.peer.members.description,
+            g.peer.friendlyname,
+            g.peer.address,
+            g.peer.endpoint.split(':')[1]
         )
 
         for peer in peers:
             self.config += self.peer.format(
-                netaddr.description,
-                peer.user.username,
+                peer.members.description,
+                peer.friendlyname,
                 peer.pubkey,
                 peer.address.split('/')[0] + '/32',
                 peer.endpoint
@@ -384,11 +324,10 @@ Endpoint = {}\n\n"""
 
 
 api.add_resource(Token, '/token')
-api.add_resource(UserListAPI, '/user')
-api.add_resource(UserAPI, '/user/<int:id>')
+api.add_resource(UserAPI, '/user')
 api.add_resource(NetaddrListAPI, '/netaddr')
 api.add_resource(NetaddrAPI, '/netaddr/<int:id>')
 api.add_resource(PeerListAPI, '/netaddr/<int:id>/peer')
 api.add_resource(PeerAPI, '/netaddr/<int:netaddrId>/peer/<int:peerId>')
-api.add_resource(Config, '/netaddr/<int:netaddrId>/peer/<int:peerId>/config')
+api.add_resource(Config, '/config')
 app.register_blueprint(api_bp, url_prefix='/api')
