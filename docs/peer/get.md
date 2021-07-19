@@ -6,7 +6,7 @@ Get and list all peers from a specific network address.
 - **Auth** : `x-access-token: <jwt>`
 
 ## Example Call
-In this example all peers from a specific network addresses will be fetched. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example all peers from a specific network address will be fetched. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
 curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/netaddr/1/peer
@@ -20,25 +20,25 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 ```json
 {
     "1": {
-        "user_id": 2,
-        "name": "Netaddr1Peer1",
+        "friendlyname": "Netaddr1Peer1",
         "address": "10.1.0.1/16",
         "endpoint": "192.168.0.100:58120",
-        "pubkey": "ejnBYSmh6UNWVF/Ct/+Ju/SxiaioBdUGBHBzlYMwpyU="
+        "pubkey": "ejnBYSmh6UNWVF/Ct/+Ju/SxiaioBdUGBHBzlYMwpyU=",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJrZXkiOiIxMDAifQ.jeZglKo-MJthVfBYtAl1suGU6S5vtuT6rFP-DaFkUZA"
     },
     "2": {
-        "user_id": 3,
-        "name": "Netaddr1Peer2",
+        "friendlyname": "Netaddr1Peer2",
         "address": "10.1.0.2/16",
         "endpoint": "192.168.0.101:58120",
-        "pubkey": "rleF/wK92zGAa0FeAhOeUPDVT1wqeUia/Vz6Df1BkmE="
+        "pubkey": "rleF/wK92zGAa0FeAhOeUPDVT1wqeUia/Vz6Df1BkmE=",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJrZXkiOiIxMDEifQ.IcAchmrt1wBZPzQMSJ13ksWkFnnhYdJLupUpA5A7gaA"
     },
     "3": {
-        "user_id": 4,
-        "name": "Netaddr1Peer3",
+        "friendlyname": "Netaddr1Peer3",
         "address": "10.1.0.3/16",
         "endpoint": "192.168.0.102:58120",
-        "pubkey": "yGP4VpAIAH2yigxqTGPsdVvDWvcKE6nRU+iTm57gGkI="
+        "pubkey": "yGP4VpAIAH2yigxqTGPsdVvDWvcKE6nRU+iTm57gGkI=",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJrZXkiOiIxMDIifQ.590lA9u6JtoJkAYBIOXDWrdjewqmlMCYBenKI6JNOCk"
     }
 }
 ```
@@ -60,7 +60,7 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 
 ```json
 {
-    "message": "Token is missing"
+    "message": "Unauthorized"
 }
 ```
 

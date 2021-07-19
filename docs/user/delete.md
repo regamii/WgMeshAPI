@@ -1,15 +1,15 @@
-# Delete specific network address
-Delete a specific network address.
+# Delete registered user
+Delete registered user.
 
-- **URL** : `/netaddr/<int:id>`
+- **URL** : `/user`
 - **Method** : `DELETE`
 - **Auth** : `x-access-token: <jwt>`
 
 ## Example Call
-In this example an existing network address is deleted. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example the registered user will be deleted. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X DELETE -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/netaddr/1
+curl -X DELETE -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/user
 ```
 
 ## Success Response
@@ -17,16 +17,6 @@ curl -X DELETE -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6
 - **Content-Type** : `application/json`
 
 ## Error Response
-- **Code** : `404 NOT FOUND`
-- **Content-Type** : `application/json`
-- **Content** :
-
-```json
-{
-    "message": "The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again."
-}
-```
-
 - **Code** : `500 INTERNAL SERVER ERROR`
 - **Content-Type** : `application/json`
 - **Content** :

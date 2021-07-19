@@ -8,20 +8,20 @@ Alter a specific peer from a specific network address.
 - **Data constraints** :
 
 ```
-name=<alphanumeric>&address=<alphanumeric>&endpoint=<alphanumeric>&pubkey=<alphanumeric>&password=<alphanumeric>
+friendlyname=<alphanumeric>&address=<alphanumeric>&endpoint=<alphanumeric>&pubkey=<alphanumeric>
 ```
 
 - **Data example**
 
 ```
-name=Netaddr1Peer1&address=10.1.0.1/16&endpoint=192.168.0.200:58120&pubkey=YpGq46XWF909c7rJ4a7AzDtA4SUAKGzR4OW4JkbXrmg=&password=secret
+friendlyname=Netaddr1Peer1&address=10.1.0.1/16&endpoint=192.168.0.200:58120&pubkey=YpGq46XWF909c7rJ4a7AzDtA4SUAKGzR4OW4JkbXrmg=
 ```
 
 ## Example Call
-In this example an existing peer from a network address is altered by the a 'normal' user, or admin, account. In this example the JWT belongs to either a 'normal' user, or admin. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example an existing peer from a network address is altered. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
-curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/netaddr/1
+curl -X PUT -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" -d "friendlyname=Netaddr1Peer1" -d "address=10.1.0.1/16" -d "endpoint=192.168.0.100:58120" -d "pubkey=ejnBYSmh6UNWVF/Ct/%2BJu/SxiaioBdUGBHBzlYMwpyU=" http://wgmeshapi/api/netaddr/1
 ```
 
 ## Success Response
@@ -32,13 +32,12 @@ curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-toke
 ```json
 {
     "id": 1,
-    "user_id": 2,
-    "name": "Netaddr1Peer1",
+    "friendlyname": "Netaddr1Peer1",
     "address": "10.1.0.1/16",
     "endpoint": "192.168.0.200:58120",
-    "pubkey": "YpGq46XWF909c7rJ4a7AzDtA4SUAKGzR4OW4JkbXrmg="
+    "pubkey": "YpGq46XWF909c7rJ4a7AzDtA4SUAKGzR4OW4JkbXrmg=",
+    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJrZXkiOiIxMDAifQ.jeZglKo-MJthVfBYtAl1suGU6S5vtuT6rFP-DaFkUZA"
 }
-
 ```
 
 ## Error Response
@@ -59,7 +58,7 @@ curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-toke
 ```json
 {
     "message": {
-        "name": "Name of the peer"
+        "friendlyname": "Name of the peer"
     }
 }
 ```
@@ -100,18 +99,6 @@ curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-toke
 }
 ```
 
-- **Code** : `400 BAD REQUEST`
-- **Content-Type** : `application/json`
-- **Content** :
-
-```json
-{
-    "message": {
-        "password": "Password is required"
-    }
-}
-```
-
 - **Code** : `500 INTERNAL SERVER ERROR`
 - **Content-Type** : `application/json`
 - **Content** :
@@ -128,7 +115,7 @@ curl -X PUT -d "description=Netaddr1" -d "netaddr=10.1.0.0/16" -H "x-access-toke
 
 ```json
 {
-    "message": "Token is missing"
+    "message": "Unauthorized"
 }
 ```
 

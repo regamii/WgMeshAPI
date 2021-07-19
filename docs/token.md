@@ -1,5 +1,5 @@
 # Token
-Used to get an JWT for a registered user. A token is **valid for 1 Hour**
+Used to get an JWT for the registered user. A token is **valid for 1 Hour**
 
 - **URL** : `/token`
 - **Method** : `GET`
@@ -7,10 +7,10 @@ Used to get an JWT for a registered user. A token is **valid for 1 Hour**
 - **Auth** : `WWW-Authenticate: Basic realm="Authentication Required"`
 
 ## Example Call
-In this example a token will be fetched for a registered user: username = `user`, password = `secret`.
+In this example a token will be fetched for a registered user: username = `user`, password = `password`.
 
 ```sh
-curl -X GET -u "user:secret" http://wgmeshapi/api/token
+curl -X GET -u "user:password" http://wgmeshapi/api/token
 ```
 
 ## Success Response

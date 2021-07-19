@@ -1,12 +1,12 @@
-# List all users
-Get and list all registered users.
+# List user
+Get and list registered user.
 
 - **URL** : `/user`
 - **Method** : `GET`
 - **Auth** : `x-access-token: <jwt>`
 
 ## Example Call
-In this example all registered users will be fetched. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example the registered user will be fetched. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
 curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/user
@@ -19,18 +19,8 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 
 ```json
 {
-    "1": {
-        "username": "user",
-        "admin": true
-    },
-    "2": {
-        "username": "user1",
-        "admin": false
-    },
-    "3": {
-        "username": "Peer 1",
-        "admin": false
-    }
+    "id": 1,
+    "username": "user"
 }
 ```
 
@@ -41,7 +31,7 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 
 ```json
 {
-    "message": "Token is missing"
+    "message": "Unauthorized"
 }
 ```
 

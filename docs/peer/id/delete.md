@@ -6,7 +6,7 @@ Delete a specific peer from a specific network address.
 - **Auth** : `x-access-token: <jwt>`
 
 ## Example Call
-In this example an existing peer is deleted from a specific network address. In this example the JWT belongs to either a 'normal' user, or admin. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
+In this example an existing peer is deleted from a specific network address. In `x-access-token: <jwt>`, `<jwt>` is replaced with a JWT acquired from the `/token` endpoint.
 
 ```sh
 curl -X DELETE -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZXhwIjoxNjE2ODQ2MTk5LjY2OTg4MTZ9.CMUrx135QNlUH0NsKO8rXg724dcQjhHPuPyptBwxP4U" http://wgmeshapi/api/netaddr/1/peer/1
@@ -43,7 +43,7 @@ curl -X DELETE -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6
 
 ```json
 {
-    "message": "Token is missing"
+    "message": "Unauthorized"
 }
 ```
 

@@ -20,11 +20,11 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 ```json
 {
     "id": 1,
-    "user_id": 2,
-    "name": "Netaddr1Peer1",
+    "friendlyname": "Netaddr1Peer1",
     "address": "10.1.0.1/16",
     "endpoint": "192.168.0.100:58120",
-    "pubkey": "ejnBYSmh6UNWVF/Ct/+Ju/SxiaioBdUGBHBzlYMwpyU="
+    "pubkey": "ejnBYSmh6UNWVF/Ct/+Ju/SxiaioBdUGBHBzlYMwpyU=",
+    "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJrZXkiOiIxMDAifQ.jeZglKo-MJthVfBYtAl1suGU6S5vtuT6rFP-DaFkUZA"
 }
 ```
 
@@ -45,7 +45,7 @@ curl -X GET -H "x-access-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSw
 
 ```json
 {
-    "message": "Token is missing"
+    "message": "Unauthorized"
 }
 ```
 
